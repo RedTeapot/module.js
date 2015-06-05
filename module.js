@@ -194,11 +194,13 @@
 				 */
 				if(this.offersService({name: ops.name}) && !services[ops.name].isDefer)
 					return services[ops.name].service({data: ops.data, notier: ops.notifier});
-				else
+				else{
+					console.warn("Service: " + ops.name + " may not exist or load over, requesting in a defer mode...");
 					/* 注意：此时无法返回服务的返回值 */
 					defer.oncomplete({name: "service@" + this.getName() + "#" + ops.name, f: function(){
 						services[ops.name].service({data: ops.data, notifier: ops.notifier});
 					}});
+				}
 			}else{
 				if(!this.offersService({name: ops.name}))
 					throw new Error("Service: " + ops.name + " does not exist in module: " + this.getName());
