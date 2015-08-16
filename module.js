@@ -74,6 +74,13 @@
 			return context;
 		}, configurable: false, enumerable: true, writable: false});
 
+		/**
+		 * 判断是否含有特定名称的方法
+		 * @param name 方法名
+		 */
+		Object.defineProperty(this, "has", {value: function(name){
+			return name in services;
+		}, configurable: false, enumerable: true, writable: false});
 		
 		/**
 		 * 定义方法
