@@ -102,12 +102,16 @@
 			
 			/* 触发挂起的调用 */
 			deferedCalls[name] = deferedCalls[name] || [];
-			setTimeout(function(){
-				deferedCalls[name].forEach(function(call){
-					func.call(call.meta.context, {data: call.data});
-				});
-				delete deferedCalls[name];
-			}, 0);
+			if(deferedCalls[name].length > 0){
+				console.log("Function of name: " + name + " is defined, calling " + deferedCalls[name].length + " deferred callbacks");
+				
+				setTimeout(function(){
+					deferedCalls[name].forEach(function(call){
+						func.call(call.meta.context, {data: call.data});
+					});
+					delete deferedCalls[name];
+				}, 0);
+			}
 			
 			return this;
 		}, configurable: false, enumerable: true, writable: false});
