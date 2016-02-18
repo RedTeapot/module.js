@@ -1,6 +1,21 @@
 ﻿;(function(){
 	var attachContext = window;
 	
+	/**
+	 * 简化的defineProperty方法定义，用于兼容IE8
+	 */
+	;(function(){
+		var rIE = /\bMSIE\s+((\d+)(\.\d+)*)\b/i;
+		var ieMajorVersion = rIE.exec(navigator.userAgent);
+		if(null != ieMajorVersion){
+			ieMajorVersion = parseInt(ieMajorVersion[2]);
+			if(ieMajorVersion <= 8)
+				Object.defineProperty = function(obj, name, opt){
+					obj[name] = opt.value;
+				};
+		}
+	})();
+	
 	var modules = {};/* 所有创建的模块。key存放名称，value存放对象 */
 	
 	/**
@@ -88,7 +103,7 @@
 		 * @param func {Function} 方法体
 		 */
 		Object.defineProperty(this, "define", {value: function(name, func){
-			if(null == name || "" == name.trim())
+			if(null == name || "" == name.replace(/(^\s+)|(\s+$)/g, ""))
 				throw new Error("Function name can not be null or empty");
 			
 			/* 检查方法是否存在 */
@@ -106,9 +121,10 @@
 				console.log("Function of name: " + name + " is defined, calling " + deferedCalls[name].length + " deferred callbacks");
 				
 				setTimeout(function(){
-					deferedCalls[name].forEach(function(call){
+					for(var i = 0; i < deferedCalls[name].length; i++){
+						var call = deferedCalls[name][i];
 						func.call(call.meta.context, {data: call.data});
-					});
+					}
 					delete deferedCalls[name];
 				}, 0);
 			}
