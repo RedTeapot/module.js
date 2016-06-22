@@ -71,7 +71,23 @@
 		 */
 		var deferedCalls = {};
 		/** 数据上下文，用于模块的各个服务之间共享变量等 */
-		var context = {};
+		var context = (function(){
+			var obj = {};
+
+			Object.defineProperty(obj, "has", {value: function(name){
+				return name in obj;
+			}, configurable: false, writable: false, enumerable: false});
+
+			Object.defineProperty(obj, "set", {value: function(name, value){
+				obj[name] = value;
+			}, configurable: false, writable: false, enumerable: false});
+
+			Object.defineProperty(obj, "get", {value: function(name, value){
+				return obj[name];
+			}, configurable: false, writable: false, enumerable: false});
+			
+			return obj;
+		})();
 		
 		/** 获取模块名称 */
 		Object.defineProperty(this, "getName", {value: function(){
