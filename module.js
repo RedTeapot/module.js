@@ -19,6 +19,87 @@
 	var modules = {};/* 所有创建的模块。key存放名称，value存放对象 */
 	
 	/**
+	 * 为指定的对象添加事件驱动机制
+	 * @param obj 要添加事件驱动机制的对象
+	 * @param ctx 监听器触发时的this上下文
+	 */
+	var eventDrive = (function(){
+		/**
+		 * @constructor
+		 * 
+		 * 事件
+		 * @param type {String} 事件类型（名称）
+		 * @param data {JSON} 需要传递至监听器的数据 
+		 */
+		var Event = function(type, data){
+			this.type = type;
+			this.timestamp = new Date().getTime();
+			this.data = data;
+			
+			Object.freeze && Object.freeze(this);
+		};
+	
+		return function(obj, ctx){
+			(function(obj, ctx){
+				/* 所有事件处理器。key为事件类型字符串（全小写），value为对应添加的事件处理器数组 */
+				var eventHandlers = {};
+				
+				/**
+				 * 添加事件监听器
+				 * @param type 事件类型
+				 * @param handler 事件处理器
+				 */
+				obj.on = function(type, handler){
+					type = type.toLowerCase();
+					
+					eventHandlers[type] = eventHandlers[type] || [];
+					if(eventHandlers[type].indexOf(handler) != -1)
+						return;
+					
+					/* 加入列表 */
+					eventHandlers[type].push(handler);
+				};
+				
+				/**
+				 * 移除事件监听器
+				 * @param type 事件类型
+				 * @param handler 事件处理器
+				 */
+				obj.off = function(type, handler){
+					type = type.toLowerCase();
+						
+					eventHandlers[type] = eventHandlers[type] || [];
+					var index = eventHandlers[type].indexOf(handler);
+					if(index == -1)
+						return;
+					
+					/* 加入列表 */
+					eventHandlers[type].splice(index, 1);
+				};
+				
+				/**
+				 * 触发事件
+				 * @param type {String} 事件类型（名称）
+				 * @param data 需要传递至监听器的数据
+				 */
+				obj.fire = function(type, data){
+					type = type.toLowerCase();
+					
+					/** 创建事件 */
+					var event = new Event(type, data);
+					
+					/** 触发监听器 */
+					eventHandlers[type] = eventHandlers[type] || [];
+					eventHandlers[type].forEach(function(handler){
+						handler.call(ctx, event);
+					});
+				};
+			})(obj, ctx);
+		};
+	})();
+	
+	
+	/**
 	 * 设定参数默认值
 	 */
 	var setDftValue = function(ops, dftOps){
@@ -56,6 +137,27 @@
 		/* 名称唯一性检查 */
 		if(ops.name in modules)
 			throw new Error("Module of name: " + ops.name + " exists already");
+		
+		/* 存储该视图触发的各个事件的最新数据。key：事件名；value：数据 */
+		var eventData = {};
+		
+		/* 添加事件驱动特性 */
+		eventDrive(this);
+		
+		var fire = this.fire;
+		this.fire = function(name, value){
+			eventData[name] = value;
+			fire(name, value);
+		};
+		
+		/**
+		 * 获取最新的，指定事件对应的数据
+		 * @param {String} eventName 事件名字
+		 */
+		this.getLatestEventData = function(eventName){
+			return eventData[eventName];
+		};
+		
 		
 		/* 保留引用 */
 		modules[ops.name] = this;
