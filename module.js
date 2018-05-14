@@ -108,7 +108,7 @@
 		if(name in obj)
 			return;
 
-		Object.defineProperty(obj, name, {value: value);
+		Object.defineProperty(obj, name, {value: value, writable: false, enumerable: true, });
 	};
 	
 	/**
