@@ -97,7 +97,19 @@
 			})(obj, ctx);
 		};
 	})();
-	
+
+	/**
+	 * 定义只读属性
+	 * @param {Object} obj 目标对象
+	 * @param {String} name 要定义的属性名称
+	 * @param {Any} value 要定义的取值
+	 */
+	var defineReadonlyProperty = function(obj, name, value){
+		if(name in obj)
+			return;
+
+		Object.defineProperty(obj, name, {value: value);
+	};
 	
 	/**
 	 * 设定参数默认值
@@ -176,57 +188,61 @@
 		var context = (function(){
 			var obj = {};
 
-			Object.defineProperty(obj, "has", {value: function(name){
+			defineReadonlyProperty(obj, "has", function(name){
 				return name in obj;
-			}, configurable: false, writable: false, enumerable: false});
+			});
 
-			Object.defineProperty(obj, "set", {value: function(name, value){
+			defineReadonlyProperty(obj, "set", function(name, value){
 				obj[name] = value;
-			}, configurable: false, writable: false, enumerable: false});
+			});
 
-			Object.defineProperty(obj, "get", {value: function(name, value){
+			defineReadonlyProperty(obj, "get", function(name, value){
 				return obj[name];
-			}, configurable: false, writable: false, enumerable: false});
+			});
 			
 			return obj;
 		})();
 		
 		/** 获取模块名称 */
-		Object.defineProperty(this, "getName", {value: function(){
+		defineReadonlyProperty(this, "getName", function(){
 			return ops.name;
-		}, configurable: false, enumerable: true, writable: false});
+		});
 		
 		/** 获取上下文 */
-		Object.defineProperty(this, "getContext", {value: function(){
+		defineReadonlyProperty(this, "getContext", function(){
 			return context;
-		}, configurable: false, enumerable: true, writable: false});
+		});
 		
 		/** 清空上下文 */
-		Object.defineProperty(this, "clearContext", {value: function(){
+		defineReadonlyProperty(this, "clearContext", function(){
 			context = {};
 			return context;
-		}, configurable: false, enumerable: true, writable: false});
+		});
 
 		/**
 		 * 判断是否含有特定名称的方法
 		 * @param name 方法名
 		 */
-		Object.defineProperty(this, "has", {value: function(name){
+		defineReadonlyProperty(this, "has", function(name){
 			return name in services;
-		}, configurable: false, enumerable: true, writable: false});
+		});
 		
 		/**
 		 * 定义方法
 		 * @param name {String} 方法名
 		 * @param func {Function} 方法体
 		 */
-		Object.defineProperty(this, "define", {value: function(name, func){
-			if(null == name || "" == name.replace(/(^\s+)|(\s+$)/g, ""))
-				throw new Error("Function name can not be null or empty");
-			
+		defineReadonlyProperty(this, "define", function(name, func){
+			if(null == name || "" == name.replace(/(^\s+)|(\s+$)/g, "")){
+				console.warn("Function name can not be null or empty");
+				return this;
+			}
+
 			/* 检查方法是否存在 */
-			if(name in services)
-				throw new Error("Function of name: " + name + " exists already");
+			if(name in services){
+				console.warn("Function of name: " + name + " exists already.");
+				return this;
+			}
 			
 			if(typeof func !== "function")
 				throw new TypeError(String(func) + " is not a valid function");
@@ -248,7 +264,7 @@
 			}
 			
 			return this;
-		}, configurable: false, enumerable: true, writable: false});
+		});
 		
 		/**
 		 * 调用方法
@@ -256,7 +272,7 @@
 		 * @param meta {Json} 方法元数据配置
 		 * @param data {Json} 要传递的参数
 		 */
-		Object.defineProperty(this, "call", {value: function(name, data, meta){
+		defineReadonlyProperty(this, "call", function(name, data, meta){
 			meta = setDftValue(meta, metaset);
 			
 			/* 判断方法是否存在，如果存在则立即调用，否则延迟触发（直至方法被创建后） */
@@ -271,19 +287,19 @@
 				throw new Error("Function of name: " + name + " does not exist");
 			
 			return this;
-		}, configurable: false, enumerable: true, writable: false});
+		});
 	};
 	
 	/**
 	 * 引用模块，如果指定名称的模块不存在则自动创建
 	 * @param name {String} 模块名称
 	 */
-	Object.defineProperty(Module, "ofName", {value: function(name){
+	defineReadonlyProperty(Module, "ofName", function(name){
 		if(name in modules)
 			return modules[name];
 		
 		return new Module({name: name});
-	}, configurable: false, enumerable: true, writable: false});
+	});
 	
 	attachContext.Module = Module;
 })();
