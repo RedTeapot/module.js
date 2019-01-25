@@ -279,12 +279,12 @@
 			if(name in services){
 				services[name].call(meta.context, {data: data});
 			}else if(meta.defer){
-				console.warn("Function of name: " + name + " does not exist, calling in a deferred mode");
+				console.warn("Function of name: " + name + " within module: " + ops.name + " does not exist, calling in a deferred mode");
 				
 				deferedCalls[name] = deferedCalls[name] || [];
 				deferedCalls[name].push({meta: meta, data: data});
 			}else
-				throw new Error("Function of name: " + name + " does not exist");
+				throw new Error("Function of name: " + name + " within module: " + ops.name + " does not exist");
 			
 			return this;
 		});
